@@ -236,11 +236,11 @@ files:
 
             // error handlers:
             if (m1 == null || m2 == null) {
-                sout.println("Conversion from ${m1?.plural ?: "???"} to ${m2?.plural ?: "???"} is impossible.")
+                sout.println("Conversion from ${m1?.plural ?: "???"} to ${m2?.plural ?: "???"} is impossible")
                 continue
             }
             if (m1.type != m2.type) {
-                sout.println("Conversion from ${m1.plural} to ${m2.plural} is impossible.")
+                sout.println("Conversion from ${m1.plural} to ${m2.plural} is impossible")
                 continue
             }
             if (m1.type != Temperature && value < 0.0) {

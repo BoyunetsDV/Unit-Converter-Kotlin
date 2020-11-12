@@ -212,10 +212,23 @@ files:
 
             // read measures:
             val m1Str = sin.next().toLowerCase()
-            val m1 = namesToMeasures[m1Str]!!
+            val m1 = namesToMeasures[m1Str]
             sin.next() // unknown word like to or in
             val m2Str = sin.next().toLowerCase()
-            val m2 = namesToMeasures[m2Str]!!
+            val m2 = namesToMeasures[m2Str]
+
+
+            /**
+             * error handlers from stage5:
+             */
+            if (m1 == null || m2 == null) {
+                sout.println("Conversion from ${m1?.plural ?: "???"} to ${m2?.plural ?: "???"} is impossible")
+                continue
+            }
+            if (m1.type != m2.type) {
+                sout.println("Conversion from ${m1.plural} to ${m2.plural} is impossible")
+                continue
+            }
 
             val converted = value * m1.multiplier / m2.multiplier
             sout.println("$value ${m1.name(value)} is $converted ${m2.name(converted)}")
@@ -253,18 +266,30 @@ files:
                             "100 cm in meters\n" +
                             "23.34 feet to in\n" +
                             "exit\n"),
-
-                    // my tests.
-                    // user doesn't handle errors here
-
+                    // New test from the example
+                    authorsCase("1 kn to feet\n" +
+                                "3 grams to meters\n" +
+                                "exit\n"
+                                ),
+                    // other tests.
                     // custom separator
                     authorsCase("10 kilograms convertPleaseTo GRAMS\nexit"),
                     authorsCase("10 mm youConvertTo CM\nexit", true),
-
                     // one kilogram
                     authorsCase("1000 Grams to kg\nexit"),
                     authorsCase("1000 mg to g\nexit", true),
-                    authorsCase("0.000001 kg to mg\nexit", true)
+                    authorsCase("0.000001 kg to mg\nexit", true),
+                    // errors from stage5
+                    // unknown
+                    authorsCase("100 AAA convertTo BBB\nexit"),
+                    authorsCase("100.0 X to Y\nexit", true),
+                    authorsCase("100.0 X to Pound\nexit", true),
+                    // incomparable
+                    authorsCase("1 Pound in yards\nexit"),
+                    authorsCase("1 cm to grams\nexit", true),
+                    authorsCase("1 k to mm\nexit", true),
+                    authorsCase("1 g to mm\nexit", true),
+                    authorsCase("1 inch to Grams\nexit")
             )
 
             val weights = listOf(
