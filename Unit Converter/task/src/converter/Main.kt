@@ -6,147 +6,176 @@ fun main() {
     val scanner = Scanner(System.`in`)
     do {
         print("Enter what you want to convert (or exit): ")
-        val command = scanner.nextLine().toLowerCase().split(" ")
-        try {
-            val convertedResult = when {
-                command.size <= 1 -> continue
-                UnitConverter.isLengthType(command[1]) -> UnitConverter.toAnotherLength(command[1], command[3], command[0].toDouble())
-                UnitConverter.isWeightType(command[1]) -> UnitConverter.toAnotherWeight(command[1], command[3], command[0].toDouble())
-                else -> throw  IllegalArgumentException()
-            }
-            displayResult(command[1], command[3], command[0].toDouble(), convertedResult)
-        } catch (exp: Exception) {
-            displayFailedResult(command[1], command[3])
+        val command = scanner.nextLine().toLowerCase()
+        if (command == "exit") {
+            continue
         }
-    } while (command[0] != "exit")
-}
-
-fun displayResult(mainType: String, destinationType: String, value: Double, result: Double) {
-    val typeName1 = UnitConverter.getFullTypeNameBasedOnValue(mainType, value)
-    val typeName2 = UnitConverter.getFullTypeNameBasedOnValue(destinationType, result)
-    println("$value $typeName1 is $result $typeName2")
-}
-
-fun displayFailedResult(mainType: String, destinationType: String) {
-    val typeName1 = UnitConverter.getFullTypeNameBasedOnValue(mainType, -1.0)
-    val typeName2 = UnitConverter.getFullTypeNameBasedOnValue(destinationType, -1.0)
-    println("Conversion from $typeName1 to $typeName2 is impossible")
+        try {
+            UnitConverter.convert(command)
+        } catch (exp: Exception) {
+            println(exp.message)
+        }
+        println()
+    } while (command != "exit")
 }
 
 object UnitConverter {
-    private val lengthTypes = listOf(
-            listOf("m", "meter", "meters"),
-            listOf("km", "kilometer", "kilometers"),
-            listOf("cm", "centimeter", "centimeters"),
-            listOf("mm", "millimeter", "millimeters"),
-            listOf("mi", "mile", "miles"),
-            listOf("yd", "yard", "yards"),
-            listOf("ft", "foot", "feet"),
-            listOf("in", "inch", "inches")
-    )
+    enum class Length(val shortcut: String, val singular: String, val plural: String) {
+        METER("m", "meter", "meters") {
+            override fun toMeters(value: Double): Double = value
+            override fun fromMeters(value: Double): Double = value
+        },
+        KILOMETER("km", "kilometer", "kilometers") {
+            override fun toMeters(value: Double): Double = value * 1000
+            override fun fromMeters(value: Double): Double = value / 1000
+        },
+        CENTIMETER("cm", "centimeter", "centimeters") {
+            override fun toMeters(value: Double): Double = value * 0.01
+            override fun fromMeters(value: Double): Double = value / 0.01
+        },
+        MILLIMETER("mm", "millimeter", "millimeters") {
+            override fun toMeters(value: Double): Double = value * 0.001
+            override fun fromMeters(value: Double): Double = value / 0.001
+        },
+        MILE("mi", "mile", "miles") {
+            override fun toMeters(value: Double): Double = value * 1609.35
+            override fun fromMeters(value: Double): Double = value / 1609.35
+        },
+        YARD("yd", "yard", "yards") {
+            override fun toMeters(value: Double): Double = value * 0.9144
+            override fun fromMeters(value: Double): Double = value / 0.9144
+        },
+        FOOT("ft", "foot", "feet") {
+            override fun toMeters(value: Double): Double = value * 0.3048
+            override fun fromMeters(value: Double): Double = value / 0.3048
+        },
+        INCH("in", "inch", "inches") {
+            override fun toMeters(value: Double): Double = value * 0.0254
+            override fun fromMeters(value: Double): Double = value / 0.0254
+        };
 
-    private val weightTypes = listOf(
-            listOf("g", "gram", "grams"),
-            listOf("kg", "kilogram", "kilograms"),
-            listOf("mg", "milligram", "milligrams"),
-            listOf("lb", "pound", "pounds"),
-            listOf("oz", "ounce", "ounces")
-    )
+        abstract fun toMeters(value: Double): Double
+        abstract fun fromMeters(value: Double): Double
 
-    fun isLengthType(type: String): Boolean {
-        return lengthTypes.any { it.contains(type) }
-    }
-
-    fun isWeightType(type: String): Boolean {
-        return weightTypes.any { it.contains(type) }
-    }
-
-    fun getFullTypeNameBasedOnValue(type: String, value: Double): String {
-        var row = lengthTypes.find { it.contains(type) }
-        if (row == null) {
-            row = weightTypes.find { it.contains(type) }
+        companion object {
+            fun findByName(name: String): Length = values().first { it.shortcut == name || it.singular == name || it.plural == name }
+            fun isLength(name: String): Boolean = values().any { it.shortcut == name || it.singular == name || it.plural == name }
         }
+    }
 
+    enum class Weight(val shortcut: String, val singular: String, val plural: String) {
+        GRAM("g", "gram", "grams") {
+            override fun toGrams(value: Double): Double = value
+            override fun fromGrams(value: Double): Double = value
+        },
+        KILOGRAM("kg", "kilogram", "kilograms") {
+            override fun toGrams(value: Double): Double = value * 1000
+            override fun fromGrams(value: Double): Double = value / 1000
+        },
+        MILLIGRAM("mg", "milligram", "milligrams") {
+            override fun toGrams(value: Double): Double = value * 0.001
+            override fun fromGrams(value: Double): Double = value / 0.001
+        },
+        POUND("lb", "pound", "pounds") {
+            override fun toGrams(value: Double): Double = value * 453.592
+            override fun fromGrams(value: Double): Double = value / 453.592
+        },
+        OUNCE("oz", "ounce", "ounces") {
+            override fun toGrams(value: Double): Double = value * 28.3495
+            override fun fromGrams(value: Double): Double = value / 28.3495
+        };
+
+        abstract fun toGrams(value: Double): Double
+        abstract fun fromGrams(value: Double): Double
+
+        companion object {
+            fun findByName(name: String): Weight = values().first { it.shortcut == name || it.singular == name || it.plural == name }
+            fun isWeight(name: String): Boolean = values().any { it.shortcut == name || it.singular == name || it.plural == name }
+        }
+    }
+
+    enum class Temperature(val shortcut: String, val altShortcut: String, val singular: String, val altSingular: String, val plural: String) {
+        FAHRENHEIT("f", "df", "fahrenheit", "degree Fahrenheit", "degrees Fahrenheit") {
+            override fun toFahrenheit(value: Double): Double = value
+            override fun fromFahrenheit(value: Double): Double = value
+        },
+        CELSIUS("c", "dc", "celsius", "degree Celsius", "degrees Celsius") {
+            override fun toFahrenheit(value: Double): Double = value * 1.8 + 32.0
+            override fun fromFahrenheit(value: Double): Double = (value - 32.0) / 1.8
+        },
+        KELVINS("k", "k", "kelvin", "kelvin", "kelvins") {
+            override fun toFahrenheit(value: Double): Double = (value - 273.15) * 1.8 + 32
+            override fun fromFahrenheit(value: Double): Double = (value - 32.0) / 1.8 + 273.15
+        };
+
+        abstract fun toFahrenheit(value: Double): Double
+        abstract fun fromFahrenheit(value: Double): Double
+
+        companion object {
+            fun findByName(name: String): Temperature = values().first {
+                it.shortcut == name || it.altShortcut == name
+                        || it.singular == name || it.altSingular.toLowerCase() == name || it.plural.toLowerCase() == name
+            }
+
+            fun isTemperature(name: String): Boolean = values().any {
+                it.shortcut == name || it.altShortcut == name
+                        || it.singular == name || it.altSingular.toLowerCase() == name || it.plural.toLowerCase() == name
+            }
+        }
+    }
+
+    fun convert(textCommand: String) {
+        val regex = Regex("^(-?\\d*\\.?\\d*?) ([a-zA-Z]* ?[a-zA-Z]*?) (in|to) ([a-zA-Z]* ?[a-zA-Z]*?\$)")
+        if (!textCommand.matches(regex)) {
+            throw IllegalArgumentException("Parse error")
+        }
+        var commandsList = regex.matchEntire(textCommand)!!.groupValues.filter { it.isNotBlank() && it.isNotEmpty() }
+        val value = commandsList[1].toDouble()
+        val originalType = getType(commandsList[2])
+        val targetType = getType(commandsList[4])
+
+        if (value < 0 && originalType is Weight) {
+            throw IllegalArgumentException("Weight shouldn't be negative")
+        } else if (value < 0 && originalType is Length) {
+            throw IllegalArgumentException("Length shouldn't be negative")
+        } else if (originalType is Weight && targetType is Weight) {
+            val result = targetType.fromGrams(originalType.toGrams(value))
+            println("$value " +
+                    "${if (value == 1.0) originalType.singular else originalType.plural} " +
+                    "is $result ${if (result == 1.0) targetType.singular else targetType.plural}")
+        } else if (originalType is Temperature && targetType is Temperature) {
+            val result = targetType.fromFahrenheit(originalType.toFahrenheit(value))
+            println("$value " +
+                    "${if (value == 1.0) originalType.altSingular else originalType.plural} " +
+                    "is $result ${if (result == 1.0) targetType.altSingular else targetType.plural}")
+        } else if (originalType is Length && targetType is Length) {
+            val result = targetType.fromMeters(originalType.toMeters(value))
+            println("$value " +
+                    "${if (value == 1.0) originalType.singular else originalType.plural} " +
+                    "is $result ${if (result == 1.0) targetType.singular else targetType.plural}")
+        } else {
+            val originalTypePluralName = getPluralValueFromType(originalType)
+            val targetTypePluralName = getPluralValueFromType(targetType)
+            throw java.lang.IllegalArgumentException("Conversion from $originalTypePluralName " +
+                    "to $targetTypePluralName is impossible")
+        }
+    }
+
+    private fun getType(text: String): Any? {
         return when {
-            row == null -> {
-                "???"
-            }
-            value == 1.0 -> {
-                row[1]
-            }
-            else -> {
-                row[2]
-            }
+            Length.isLength(text) -> Length.findByName(text)
+            Weight.isWeight(text) -> Weight.findByName(text)
+            Temperature.isTemperature(text) -> Temperature.findByName(text)
+            else -> null
         }
     }
 
-    fun toAnotherLength(currentType: String, newType: String, value: Double): Double {
-        val result = when (currentType) {
-            in lengthTypes[0] -> value
-            in lengthTypes[1] -> kilometersToMeters(value)
-            in lengthTypes[2] -> centimetersToMeters(value)
-            in lengthTypes[3] -> millimetersToMeters(value)
-            in lengthTypes[4] -> milesToMetres(value)
-            in lengthTypes[5] -> yardsToMeters(value)
-            in lengthTypes[6] -> feetToMeters(value)
-            in lengthTypes[7] -> inchesToMeters(value)
-            else -> throw  IllegalArgumentException()
-        }
-
-        return when (newType) {
-            in lengthTypes[0] -> result
-            in lengthTypes[1] -> metersToKilometers(result)
-            in lengthTypes[2] -> metersToCentimeters(result)
-            in lengthTypes[3] -> metersToMillimeters(result)
-            in lengthTypes[4] -> metersToMiles(result)
-            in lengthTypes[5] -> metersToYards(result)
-            in lengthTypes[6] -> metersToFeet(result)
-            in lengthTypes[7] -> metersToInches(result)
-            else -> throw  IllegalArgumentException()
+    private fun getPluralValueFromType(type: Any?): String {
+        return when (type) {
+            is Length -> type.plural
+            is Weight -> type.plural
+            is Temperature -> type.plural
+            else -> "???"
         }
     }
-
-    fun toAnotherWeight(currentType: String, newType: String, value: Double): Double {
-        val result = when (currentType) {
-            in weightTypes[0] -> value
-            in weightTypes[1] -> kilogramsToGrams(value)
-            in weightTypes[2] -> milligramsToGrams(value)
-            in weightTypes[3] -> poundsToGrams(value)
-            in weightTypes[4] -> ouncesToGrams(value)
-            else -> throw  IllegalArgumentException()
-        }
-
-        return when (newType) {
-            in weightTypes[0] -> result
-            in weightTypes[1] -> gramsToKilograms(result)
-            in weightTypes[2] -> gramsToMilligrams(result)
-            in weightTypes[3] -> gramsToPounds(result)
-            in weightTypes[4] -> gramsToOunces(result)
-            else -> throw  IllegalArgumentException()
-        }
-    }
-
-    fun kilometersToMeters(kilometers: Double) = kilometers * 1000
-    fun metersToKilometers(meters: Double) = meters / 1000
-    fun centimetersToMeters(centimeters: Double) = centimeters * 0.01
-    fun metersToCentimeters(meters: Double) = meters / 0.01
-    fun millimetersToMeters(millimeters: Double) = millimeters * 0.001
-    fun metersToMillimeters(meters: Double) = meters / 0.001
-    fun milesToMetres(miles: Double) = miles * 1609.35
-    fun metersToMiles(meters: Double) = meters / 1609.35
-    fun yardsToMeters(yards: Double) = yards * 0.9144
-    fun metersToYards(meters: Double) = meters / 0.9144
-    fun feetToMeters(foot: Double) = foot * 0.3048
-    fun metersToFeet(meters: Double) = meters / 0.3048
-    fun inchesToMeters(inches: Double) = inches * 0.0254
-    fun metersToInches(meters: Double) = meters / 0.0254
-
-    fun kilogramsToGrams(kilograms: Double) = kilograms * 1000
-    fun gramsToKilograms(grams: Double) = grams / 1000
-    fun milligramsToGrams(milligrams: Double) = milligrams * 0.001
-    fun gramsToMilligrams(grams: Double) = grams / 0.001
-    fun poundsToGrams(pounds: Double) = pounds * 453.592
-    fun gramsToPounds(grams: Double) = grams / 453.592
-    fun ouncesToGrams(ounces: Double) = ounces * 28.3495
-    fun gramsToOunces(grams: Double) = grams / 28.3495
 }

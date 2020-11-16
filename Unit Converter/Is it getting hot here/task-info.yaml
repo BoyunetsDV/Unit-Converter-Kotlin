@@ -361,5 +361,23 @@ files:
     }
   learner_created: false
 feedback_link: https://hyperskill.org/projects/70/stages/389/implement#comment
-status: Unchecked
-record: -1
+status: Failed
+feedback:
+  message: |-
+    Wrong answer in test #3
+
+    Your line &quot;Enter what you want to convert (or exit): Parse error&quot;
+    doesn&#39;t match with &quot;Enter what you want to convert (or exit): Conversion from ??? to ??? is impossible&quot;
+    in parts &quot;parse&quot; and &quot;conversion&quot;.
+
+    Please find below the output of your program during this failed test.
+    Note that the &#39;&gt;&#39; character indicates the beginning of the input line.
+
+    ---
+
+    Enter what you want to convert (or exit): &gt; 100 AAA convertTo BBB
+    Parse error
+
+    Enter what you want to convert (or exit): &gt; exit
+  time: Mon, 16 Nov 2020 21:49:40 UTC
+record: 5
