@@ -125,7 +125,7 @@ object UnitConverter {
     }
 
     fun convert(textCommand: String) {
-        val regex = Regex("^(-?\\d*\\.?\\d*?) ([a-zA-Z]* ?[a-zA-Z]*?) (in|to) ([a-zA-Z]* ?[a-zA-Z]*?\$)")
+        val regex = Regex("^(-?\\d*\\.?\\d*?) ([a-zA-Z]* ?[a-zA-Z]*?) (convertto|in|to) ([a-zA-Z]* ?[a-zA-Z]*?\$)")
         if (!textCommand.matches(regex)) {
             throw IllegalArgumentException("Parse error")
         }
